@@ -1,69 +1,103 @@
-import {useState, useEffect} from "react"
-import TextField from '@material-ui/core/TextField';
-import { Button } from '@material-ui/core';
-import {db} from "./firebase-config";
-import firebase from "firebase";
-//import useAuthState
-import TodoListItem from "./Todos.js";
+import TodoOperations from "./todo-opertaions"
+import {db,fire} from "./firebase-config"
+import React,{useState,useEffect}  from "react"
+import Login from "./Login";
+
 
 
 function App() {
+    const [user, setUser] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [emailError, setEmailError] = useState("");
+    const [passwordError, setPasswordError] = useState("");
+    const [hasAccount, setHasAccount] = useState(false);
+    const clearInputs = () => {
+        setEmail("");
+        setPassword("");
+      };
+    
+      const clearErrors = () => {
+        setEmailError("");
+        setPasswordError("");
+      };
+    
+      const handleLogin = () => {
+        clearErrors();
+        fire
+          .auth()
+          .signInWithEmailAndPassword(email, password)
+          .catch((err) => {
+            switch (err.code) {
+                case "auth/invalid-email":
+                case "auth/user-disabled":
+                case "auth/user-not-found":
+                  setEmailError(err.message);
+                  break;
+                case "auth/wrong-password":
+                  setPasswordError(err.message);
+                  break;
+              }
+            });
+        };
+        
+    const handleSignup = () => {
+            clearErrors();
+            fire
+              .auth()
+              .createUserWithEmailAndPassword(email, password)
+              .catch((err) => {
+                switch (err.code) {
+                  case "auth/email-already-in-use":
+                  case "auth/invalid-email":
+                    setEmailError(err.message);
+                    break;
+                  case "auth/weak-password":
+                    setPasswordError(err.message);
+                    break;
+                }
+              });
+          };
+        
+          const handleLogout = () => {
+            fire.auth().signOut();
+          };
+        
+          const authListner = () => {
+            fire.auth().onAuthStateChanged((user) => {
+              if (user) {
+                clearInputs();
+                setUser(user);
+              } else {
+                setUser("");
+              }
+            });
+          };
+        
+          useEffect(() => {
+            authListner();
+        }, []);
 
- const[todos,setTodo]=  useState([])
- const [todoInput, settodoInput] = useState("")
-
-useEffect(() => {
- getTodo();
-}, [todoInput])
-
-function getTodo(){
- db.collection("todos").onSnapshot(function(querySnapshot){
-  setTodo(querySnapshot.docs.map((doc)=>({
-    id: doc.id,
-    todo: doc.data().todo,
-    inprogress: doc.data().inprogress,
-  })))
- })
-}
-
- const addTodo =(e)=>{
- e.preventDefault();
- db.collection("todos").add(
-   {
-     inprogress:true,
-     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-     todo:todoInput,
-   })
-   settodoInput("")
- }
-  return (
-    <div className="App"   style={{
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      alignItems: "center",
-      width: "100%",
-    }}>
-    <h1>my todo app😊</h1>
-    <form>
-      <TextField id="standard-basic" 
-      label="write a todo"
-      value={todoInput}
-      style={{ width: "90vw", maxWidth: "500px" }}
-      onChange={(e) => settodoInput(e.target.value)}
-       />
-    <Button type="submit" variant="contained" onClick={addTodo} >add</Button>
-    </form>
-    <div style={{ width: "90vw", maxWidth: "500px", marginTop: "24px" }}>
-    {todos.map((todo)=>(
-    <TodoListItem 
-        todo={todo.todo}
-        inprogress={todo.inprogress}
-        id={todo.id} /> )
-
-    )}</div>
-    </div>
-  );
-}
-
-export default App;
+        return (
+            <div className="body">
+              {user ? (
+                <TodoOperations handleLogout={handleLogout} />
+              ) : (
+                <Login
+                  email={email}
+                  setEmail={setEmail}
+                  password={password}
+                  setPassword={setPassword}
+                  handleLogin={handleLogin}
+                  handleSignup={handleSignup}
+                  hasAccount={hasAccount}
+                  setHasAccount={setHasAccount}
+                  emailError={emailError}
+                  passwordError={passwordError}
+                />
+              )}
+            </div>
+          );
+        };
+        
+        export default App;
