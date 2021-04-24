@@ -11,7 +11,7 @@ const Login = (props) => {
     hasAccount,
     setHasAccount,
     emailError,
-    passwordError
+    passwordError,
   } = props;
 
   return (
@@ -37,22 +37,22 @@ const Login = (props) => {
         <div className="btnContainer">
           {hasAccount ? (
             <>
-              <button className="lg-btn" onClick={handleLogin}>
+              <button className="lg-btn" style={{cursor:"pointer"}} onClick={handleLogin}>
                 Sign in
               </button>
               <p>
                 Don't have an account ?{" "}
-                <span onClick={() => setHasAccount(!hasAccount)}>Sign Up</span>{" "}
+                <span style={{cursor:"pointer"}} onClick={() => setHasAccount(!hasAccount)}>Sign Up</span>{" "}
               </p>
             </>
           ) : (
             <>
-              <button className="lg-btn" onClick={handleSignup}>
+              <button className="lg-btn" style={{cursor:"pointer"}} onClick={handleSignup}>
                 Sign Up
               </button>
               <p>
                 Have an account ?{" "}
-                <span onClick={() => setHasAccount(!hasAccount)}>Sign In</span>{" "}
+                <span style={{cursor:"pointer"}} onClick={() => setHasAccount(!hasAccount)}>Sign In</span>{" "}
               </p>
             </>
           )}
